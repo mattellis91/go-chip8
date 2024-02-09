@@ -3,41 +3,42 @@ package main
 import (
 	"image"
 	"log"
-	"math/rand"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
 const (
-	cellSize = 24
+	cellScale = 16
 	cellsWide = 64
 	cellsHigh = 32
-	windowWidth  = cellsWide * cellSize
-	windowHeight = cellsHigh * cellSize
+	windowWidth  = cellsWide * cellScale
+	windowHeight = cellsHigh * cellScale
 )
 
 type Game struct {
-	display [64][32]bool
+	display [cellsHigh][cellsWide]bool
 	displayImage *image.RGBA
 }
 
 func (g *Game) Update() error {
-	l := cellsWide * cellsHigh
-
-	for i := 0; i < l; i++ { 
-
-		r := rand.Intn(2)
-		c := uint8(0xff)
 	
-		if r == 1 {
-			c = 0x0
+	for row := 0; row < cellsHigh; row++ {
+		for col := 0; col < cellsWide; col++ {
+
+			imagePixelIndex := getDisplayImageIndex(row, col)
+
+			c := uint8(0x0)
+			if g.display[row][col] { 
+				c = 0xff
+			}
+
+			//set rgba value of corresponding pixel in displayImage
+			g.displayImage.Pix[imagePixelIndex*4] = c //R
+			g.displayImage.Pix[imagePixelIndex*4+1] = c //G
+			g.displayImage.Pix[imagePixelIndex*4+2] = c //B
+			g.displayImage.Pix[imagePixelIndex*4+3] = 0xff //A
 		}
-
-		g.displayImage.Pix[i*4] = c //R
-		g.displayImage.Pix[i*4+1] = c //G
-		g.displayImage.Pix[i*4+2] = c //B
-		g.displayImage.Pix[i*4+3] = 0xff //A
-	
 	}
+
 	return nil
 }
 
@@ -54,11 +55,18 @@ func main() {
 	ebiten.SetWindowTitle("Hello, World!")
 
 	g := &Game{
-		display: [64][32]bool{},
+		display: [cellsHigh][cellsWide]bool{},
 		displayImage: image.NewRGBA(image.Rect(0, 0, cellsWide, cellsHigh)),
 	}
+
+	g.display[0][10] = true
+	g.display[cellsHigh - 1][10] = true
 
 	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func getDisplayImageIndex(row, col int) int {
+	return row*cellsWide + col
 }
