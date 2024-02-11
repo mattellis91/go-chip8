@@ -1,41 +1,50 @@
 package main
 
 import (
-	"image"
 	"log"
+	"os"
+
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-const (
-	cellScale = 16
-	cellsWide = 64
-	cellsHigh = 32
-	windowWidth  = cellsWide * cellScale
-	windowHeight = cellsHigh * cellScale
-)
-
 type Game struct {
-	display [cellsHigh][cellsWide]bool
-	displayImage *image.RGBA
+	display Display
+	cpu CPU
 }
 
 func (g *Game) Update() error {
-	
+
+	if ebiten.IsKeyPressed(ebiten.KeyW) {
+		println("W key pressed");
+	} 
+
+	if ebiten.IsKeyPressed(ebiten.KeyA){
+		println("A key pressed");	
+	}
+
+	if ebiten.IsKeyPressed(ebiten.KeyS){
+		println("S key pressed");	
+	}
+
+	if ebiten.IsKeyPressed(ebiten.KeyD){
+		println("D key pressed");	
+	}
+
 	for row := 0; row < cellsHigh; row++ {
 		for col := 0; col < cellsWide; col++ {
 
 			imagePixelIndex := getDisplayImageIndex(row, col)
 
 			c := uint8(0x0)
-			if g.display[row][col] { 
+			if g.display.displayCells[row][col] { 
 				c = 0xff
 			}
 
 			//set rgba value of corresponding pixel in displayImage
-			g.displayImage.Pix[imagePixelIndex*4] = c //R
-			g.displayImage.Pix[imagePixelIndex*4+1] = c //G
-			g.displayImage.Pix[imagePixelIndex*4+2] = c //B
-			g.displayImage.Pix[imagePixelIndex*4+3] = 0xff //A
+			g.display.displayImage.Pix[imagePixelIndex*4] = c //R
+			g.display.displayImage.Pix[imagePixelIndex*4+1] = c //G
+			g.display.displayImage.Pix[imagePixelIndex*4+2] = c //B
+			g.display.displayImage.Pix[imagePixelIndex*4+3] = 0xff //A
 		}
 	}
 
@@ -43,7 +52,7 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	screen.WritePixels(g.displayImage.Pix)
+	screen.WritePixels(g.display.displayImage.Pix)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
@@ -55,12 +64,12 @@ func main() {
 	ebiten.SetWindowTitle("Hello, World!")
 
 	g := &Game{
-		display: [cellsHigh][cellsWide]bool{},
-		displayImage: image.NewRGBA(image.Rect(0, 0, cellsWide, cellsHigh)),
+		display: *NewDisplay(),
+		cpu: *NewCPU(),
 	}
 
-	g.display[0][10] = true
-	g.display[cellsHigh - 1][10] = true
+	g.display.displayCells[0][10] = true
+	g.display.displayCells[cellsHigh - 1][10] = true
 
 	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)
@@ -69,4 +78,27 @@ func main() {
 
 func getDisplayImageIndex(row, col int) int {
 	return row*cellsWide + col
+}
+
+func loadRom(filePath string) error {
+	file, err := os.OpenFile(filePath, os.O_RDONLY, 0)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	fStat, err := file.Stat()
+	if err != nil {
+		return err
+	}
+
+	buffer := make([]byte, fStat.Size())
+	_, err = file.Read(buffer)
+	if err != nil {
+		return err
+	}
+
+	//TODO: load buffer into cpu memory
+
+	return nil
 }
