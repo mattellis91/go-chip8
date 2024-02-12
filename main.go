@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"fmt"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -71,6 +72,9 @@ func main() {
 	g.display.displayCells[0][10] = true
 	g.display.displayCells[cellsHigh - 1][10] = true
 
+	g.loadRom("test_opcode.ch8")
+	fmt.Printf("%v", g.cpu.memory)
+
 	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)
 	}
@@ -80,7 +84,7 @@ func getDisplayImageIndex(row, col int) int {
 	return row*cellsWide + col
 }
 
-func loadRom(filePath string) error {
+func (g *Game) loadRom(filePath string) error {
 	file, err := os.OpenFile(filePath, os.O_RDONLY, 0)
 	if err != nil {
 		return err
@@ -99,6 +103,10 @@ func loadRom(filePath string) error {
 	}
 
 	//TODO: load buffer into cpu memory
+	startIndex := 0x200
+	for i := 0; i < len(buffer); i++ {
+		g.cpu.memory[startIndex + i] = buffer[i]
+	}
 
 	return nil
 }
