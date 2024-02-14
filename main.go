@@ -86,8 +86,15 @@ func main() {
 	g.display.displayCells[0][10] = true
 	g.display.displayCells[cellsHigh - 1][10] = true
 
+	g.loadFontSet()
 	g.loadRom("test_opcode.ch8")
-	fmt.Printf("%v", g.cpu.memory)
+
+	
+	x := 0xf18a
+	m := 0x00f0
+	x = x & m
+	y := x >> 4 * 1
+	fmt.Printf("%v", y)
 
 	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)
@@ -96,6 +103,12 @@ func main() {
 
 func getDisplayImageIndex(row, col int) int {
 	return row*cellsWide + col
+}
+
+func (g *Game) loadFontSet() {
+	for i := 0; i < len(fontSet); i++ {
+		g.cpu.memory[FontStartAddress + i] = fontSet[i]
+	}
 }
 
 func (g *Game) loadRom(filePath string) error {
@@ -117,9 +130,8 @@ func (g *Game) loadRom(filePath string) error {
 	}
 
 	//TODO: load buffer into cpu memory
-	startIndex := 0x200
 	for i := 0; i < len(buffer); i++ {
-		g.cpu.memory[startIndex + i] = buffer[i]
+		g.cpu.memory[PcStartAddress + i] = buffer[i]
 	}
 
 	return nil
