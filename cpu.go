@@ -27,17 +27,18 @@ func NewCPU() *CPU {
 func (c *CPU) ExecuteInstruction(instruction uint16) {
 	c.pc += 2
 
-	x := (instruction & 0x0F00) >> 8
-	y := (instruction & 0x00F0) >> 4
-	n := instruction & 0x000F
-	nn := instruction & 0x00FF
-	nnn := instruction & 0x0FFF
+	// x := (instruction & 0x0F00) >> 8
+	// y := (instruction & 0x00F0) >> 4
+	// n := instruction & 0x000F
+	// nn := instruction & 0x00FF
+	// nnn := instruction & 0x0FFF
 
 	switch instruction & 0xF000 {
 		case 0x0000:
 			switch instruction {
 				case 0x00E0:
 					//CLS - Clear the display
+
 				case 0x00EE:
 					//RET - Return from a subroutine
 			}
@@ -56,7 +57,26 @@ func (c *CPU) ExecuteInstruction(instruction uint16) {
 		case 0x7000:
 			//ADD Vx, byte - Set Vx = Vx + nn
 		case 0x8000:
-			//TODO: Check the rest of the 8xxx instructions
+			switch instruction & 0xF {
+				case 0x0:
+					//LD, Vx, VY
+				case 0x1:
+					//OR Vx, Vy
+				case 0x2:
+					//AND Vx, Vy
+				case 0x3:
+					//XOR Vx, Vy
+				case 0x4:
+					//ADD Vx, Vy
+				case 0x5:
+					//SUB Vx, Vy
+				case 0x6:
+					//SHR Vx {, Vy}
+				case 0x7:
+					//SUBN Vx, Vy
+				case 0xE:
+					//SHL Vx {, Vy}
+			}
 		case 0x9000:
 			//SNE Vx, Vy - Skip next instruction if Vx != Vy
 		case 0xA000:
