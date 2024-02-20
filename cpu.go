@@ -89,8 +89,34 @@ func (c *CPU) ExecuteInstruction(instruction uint16) {
 			//DRW Vx, Vy, nibble - Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision
 		case 0xE000:
 			//TODO: Check the rest of the Exxx instructions
+			switch instruction & 0xFF {
+				case 0x9E:
+					//SKP Vx - Skip next instruction if key with the value of Vx is pressed
+				case 0xA1:
+					//SKNP Vx - Skip next instruction if key with the value of Vx is not pressed
+			}
 		case 0xF000:
 			//TODO: Check the rest of the Fxxx instructions
+			switch instruction & 0xFF {
+				case 0x07:
+					//LD Vx, DT - Set Vx = delay timer value
+				case 0x0A:
+					//LD Vx, K - Wait for a key press, store the value of the key in Vx
+				case 0x15:
+					//LD DT, Vx - Set delay timer = Vx
+				case 0x18:
+					//LD ST, Vx - Set sound timer = Vx
+				case 0x1E:
+					//ADD I, Vx - Set I = I + Vx
+				case 0x29:
+					//LD F, Vx - Set I = location of sprite for digit Vx
+				case 0x33:
+					//LD B, Vx - Store BCD representation of Vx in memory locations I, I+1, and I+2
+				case 0x55:
+					//LD [I], Vx - Store registers V0 through Vx in memory starting at location I
+				case 0x65:
+					//LD Vx, [I] - Read registers V0 through Vx from memory starting at location I
+			}
 		default:
 			panic("INVALID OPCODE")
 	}
