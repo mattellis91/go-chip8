@@ -1,6 +1,9 @@
 package main
 
-import "image"
+import (
+	"fmt"
+	"image"
+)
 
 const (
 	cellScale = 16
@@ -39,5 +42,14 @@ func NewDisplay() *Display {
 	return &Display{
 		displayCells: [cellsHigh][cellsWide]bool{},
 		displayImage: image.NewRGBA(image.Rect(0, 0, cellsWide, cellsHigh)),
+	}
+}
+
+func (d *Display) Clear() {
+	fmt.Println("Clearing display")
+	for row := 0; row < cellsHigh; row++ {
+		for col := 0; col < cellsWide; col++ {
+			d.displayCells[row][col] = false
+		}
 	}
 }

@@ -3,8 +3,6 @@ package main
 import (
 	"log"
 	"os"
-	"fmt"
-
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -90,11 +88,8 @@ func main() {
 	g.loadRom("test_opcode.ch8")
 
 	
-	x := 0xf18a
-	m := 0x00f0
-	x = x & m
-	y := x >> 4 * 1
-	fmt.Printf("%v", y)
+	//test clear display
+	g.cpu.ExecuteInstruction(0x00E0, &g.display)
 
 	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)

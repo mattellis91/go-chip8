@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 type CPU struct {
 	memory [4096]uint8 // memory size 4k
 	vx     [16]uint8   // cpu registers V0-VF
@@ -24,32 +26,53 @@ func NewCPU() *CPU {
 	}
 }
 
-func (c *CPU) ExecuteInstruction(instruction uint16) {
-	c.pc += 2
+func (c *CPU) ExecuteInstruction(instruction uint16, display *Display) {
+	c.nextInstruction()
 
-	// x := (instruction & 0x0F00) >> 8
-	// y := (instruction & 0x00F0) >> 4
-	// n := instruction & 0x000F
-	// nn := instruction & 0x00FF
-	// nnn := instruction & 0x0FFF
+	x := (instruction & 0x0F00) >> 8
+	//y := (instruction & 0x00F0) >> 4
+	//n := instruction & 0x000F
+	nn := instruction & 0x00FF
+	//nnn := instruction & 0x0FFF
+
+	fmt.Println("Executing instruction: ", instruction)
 
 	switch instruction & 0xF000 {
 		case 0x0000:
 			switch instruction {
 				case 0x00E0:
 					//CLS - Clear the display
-
+					display.Clear()
 				case 0x00EE:
 					//RET - Return from a subroutine
+					c.pc = c.stack[c.sp]
+					c.sp--
+				default:
+					panic("INVALID OPCODE")
 			}
 		case 0x1000:
 			//JP addr - Jump to location nnn
+			c.pc = instruction & 0x0FFF
 		case 0x2000:
 			//CALL addr - Call subroutine at nnn
+			c.sp++
+
+			if c.sp == 16 {
+				panic("STACK OVERFLOW")
+			}
+
+			c.stack[c.sp] = c.pc
+			c.pc = instruction & 0x0FFF
 		case 0x3000:
 			//SE Vx, byte - Skip next instruction if Vx = nn
+			if c.vx[x] == uint8(nn) {
+				c.pc += 2
+			}
 		case 0x4000:
 			//SNE Vx, byte - Skip next instruction if Vx != nn
+			if c.vx[x] != uint8(nn) {
+				c.pc += 2
+			}
 		case 0x5000:
 			//SE Vx, Vy - Skip next instruction if Vx = Vy
 		case 0x6000:
@@ -121,5 +144,9 @@ func (c *CPU) ExecuteInstruction(instruction uint16) {
 			panic("INVALID OPCODE")
 	}
 
+}
+
+func (c *CPU) nextInstruction() {
+	c.pc += 2
 }
 
