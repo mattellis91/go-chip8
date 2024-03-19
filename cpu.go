@@ -30,10 +30,10 @@ func (c *CPU) ExecuteInstruction(instruction uint16, display *Display) {
 	c.nextInstruction()
 
 	x := (instruction & 0x0F00) >> 8
-	//y := (instruction & 0x00F0) >> 4
+	y := (instruction & 0x00F0) >> 4
 	//n := instruction & 0x000F
 	nn := instruction & 0x00FF
-	//nnn := instruction & 0x0FFF
+	nnn := instruction & 0x0FFF
 
 	fmt.Println("Executing instruction: ", instruction)
 
@@ -56,54 +56,99 @@ func (c *CPU) ExecuteInstruction(instruction uint16, display *Display) {
 		case 0x2000:
 			//CALL addr - Call subroutine at nnn
 			c.sp++
-
 			if c.sp == 16 {
 				panic("STACK OVERFLOW")
 			}
-
 			c.stack[c.sp] = c.pc
 			c.pc = instruction & 0x0FFF
 		case 0x3000:
 			//SE Vx, byte - Skip next instruction if Vx = nn
 			if c.vx[x] == uint8(nn) {
-				c.pc += 2
+				c.nextInstruction()
 			}
 		case 0x4000:
 			//SNE Vx, byte - Skip next instruction if Vx != nn
 			if c.vx[x] != uint8(nn) {
-				c.pc += 2
+				c.nextInstruction()
 			}
 		case 0x5000:
 			//SE Vx, Vy - Skip next instruction if Vx = Vy
+			if c.vx[x] == c.vx[y] {
+				c.nextInstruction()
+			}
 		case 0x6000:
 			//LD Vx, byte - Set Vx = nn
+			c.vx[x] = uint8(nn)
 		case 0x7000:
 			//ADD Vx, byte - Set Vx = Vx + nn
+			c.vx[x] += uint8(nn)
 		case 0x8000:
 			switch instruction & 0xF {
 				case 0x0:
-					//LD, Vx, VY
+					//LD, Vx, Vy 
+					c.vx[x] = c.vx[y]
 				case 0x1:
 					//OR Vx, Vy
+					c.vx[x] |= c.vx[y]
 				case 0x2:
 					//AND Vx, Vy
+					c.vx[x] &= c.vx[y]
 				case 0x3:
 					//XOR Vx, Vy
+					c.vx[x] ^= c.vx[y]
 				case 0x4:
 					//ADD Vx, Vy
+					// VF is set to 1 when there's a carry, and to 0 when there isn't
+					if c.vx[y] > c.vx[x] { 
+						c.vx[0xF] = 1
+					} else {
+						c.vx[0xF] = 0
+					} 
+					c.vx[x] += c.vx[y]
 				case 0x5:
 					//SUB Vx, Vy
+					// VF is set to 0 when there's a borrow, and 1 when there isn't
+					if c.vx[y] > c.vx[x] { 
+						c.vx[0xF] = 0
+					} else {
+						c.vx[0xF] = 1
+					} 
+					c.vx[x] -= c.vx[y]
 				case 0x6:
 					//SHR Vx {, Vy}
+					lsb := c.vx[x] & 0x1
+					if lsb == 1 {
+						c.vx[0xF] = 1
+					} else {
+						c.vx[0xF] = 0
+					}
+					c.vx[x] >>= 1 
 				case 0x7:
 					//SUBN Vx, Vy
+					if c.vx[x] > c.vx[y] {
+						c.vx[0xF] = 0
+					} else {
+						c.vx[0xF] = 1
+					}
+					c.vx[x] = c.vx[y] - c.vx[x]
 				case 0xE:
 					//SHL Vx {, Vy}
+					msb := c.vx[x] & 0x80
+					if msb == 1 {
+						c.vx[0xF] = 1
+					} else {
+						c.vx[0xF] = 0
+					}
+					c.vx[x] <<= 1
 			}
 		case 0x9000:
 			//SNE Vx, Vy - Skip next instruction if Vx != Vy
+			if c.vx[x] != c.vx[y] {
+				c.nextInstruction()
+			}
 		case 0xA000:
 			//LD I, addr - Set I = nnn
+			c.iv = nnn
 		case 0xB000:
 			//JP V0, addr - Jump to location nnn + V0
 		case 0xC000:
