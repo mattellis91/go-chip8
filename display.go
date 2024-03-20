@@ -33,14 +33,14 @@ var fontSet = []uint8{
 }
 
 type Display struct {
-	displayCells [cellsHigh][cellsWide]bool
+	displayCells [cellsHigh][cellsWide]uint8
 	displayImage *image.RGBA
 	
 }
 
 func NewDisplay() *Display {
 	return &Display{
-		displayCells: [cellsHigh][cellsWide]bool{},
+		displayCells: [cellsHigh][cellsWide]uint8{},
 		displayImage: image.NewRGBA(image.Rect(0, 0, cellsWide, cellsHigh)),
 	}
 }
@@ -49,16 +49,16 @@ func (d *Display) Clear() {
 	fmt.Println("Clearing display")
 	for row := 0; row < cellsHigh; row++ {
 		for col := 0; col < cellsWide; col++ {
-			d.displayCells[row][col] = false
+			d.displayCells[row][col] = 0
 		}
 	}
 }
 
-func (d *Display) GetPixel(x, y uint8) bool {
+func (d *Display) GetPixel(x, y uint8) uint8 {
 	return d.displayCells[y][x]
 }
 
-func (d *Display) SetPixel(x, y uint8, value bool) bool {
-	d.displayCells[y][x] = value
-	return value
+func (d *Display) SetPixel(x, y uint8) bool {
+	d.displayCells[y][x] ^= 1
+	return d.displayCells[y][x] != 1
 }

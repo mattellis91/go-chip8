@@ -163,12 +163,11 @@ func (c *CPU) ExecuteInstruction(instruction uint16, display *Display) {
 			width := 8
 			height := int(instruction & 0x000F)
 			c.vx[0xF] = 0
-
 			for y := 0; y < height; y++ {
 				sprite := c.memory[c.iv + uint16(y)]
 				for x := 0; x < width; x++ {
-					if (sprite & (0x80 >> x)) != 0 {
-						if display.SetPixel(c.vx[x], c.vx[y], true) {
+					if (sprite & 0x80) > 0 {
+						if display.SetPixel(c.vx[x], c.vx[y]) {
 							c.vx[0xF] = 1
 						}
 					}

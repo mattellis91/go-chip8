@@ -49,7 +49,7 @@ func (g *Game) Update() error {
 			imagePixelIndex := getDisplayImageIndex(row, col)
 
 			c := uint8(0x0)
-			if g.display.displayCells[row][col] { 
+			if g.display.displayCells[row][col] == 1{ 
 				c = 0xff
 			}
 
@@ -81,8 +81,8 @@ func main() {
 		cpu: *NewCPU(),
 	}
 
-	g.display.displayCells[0][10] = true
-	g.display.displayCells[cellsHigh - 1][10] = true
+	g.display.displayCells[0][10] = 1
+	g.display.displayCells[cellsHigh - 1][10] = 1
 
 	g.loadFontSet()
 	g.loadRom("test_opcode.ch8")
