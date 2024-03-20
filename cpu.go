@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"math/rand"
+)
 
 type CPU struct {
 	memory [4096]uint8 // memory size 4k
@@ -153,8 +156,25 @@ func (c *CPU) ExecuteInstruction(instruction uint16, display *Display) {
 			//JP V0, addr - Jump to location nnn + V0
 		case 0xC000:
 			//RND Vx, byte - Set Vx = random byte AND nn
+			rand := uint8(rand.Intn(256))
+			c.vx[x] = rand & uint8(nn)
 		case 0xD000:
 			//DRW Vx, Vy, nibble - Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision
+			width := 8
+			height := int(instruction & 0x000F)
+			c.vx[0xF] = 0
+
+			for y := 0; y < height; y++ {
+				sprite := c.memory[c.iv + uint16(y)]
+				for x := 0; x < width; x++ {
+					if (sprite & (0x80 >> x)) != 0 {
+						if display.SetPixel(c.vx[x], c.vx[y], true) {
+							c.vx[0xF] = 1
+						}
+					}
+					sprite <<= 1
+				}
+			}
 		case 0xE000:
 			//TODO: Check the rest of the Exxx instructions
 			switch instruction & 0xFF {

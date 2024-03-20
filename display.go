@@ -53,3 +53,12 @@ func (d *Display) Clear() {
 		}
 	}
 }
+
+func (d *Display) GetPixel(x, y uint8) bool {
+	return d.displayCells[y][x]
+}
+
+func (d *Display) SetPixel(x, y uint8, value bool) bool {
+	d.displayCells[y][x] = value
+	return value
+}
