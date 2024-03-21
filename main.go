@@ -14,6 +14,8 @@ const (
 type Game struct {
 	display Display
 	cpu CPU
+	speed int
+	paused bool
 }
 
 //INPUT KEYS
@@ -130,4 +132,23 @@ func (g *Game) loadRom(filePath string) error {
 	}
 
 	return nil
+}
+
+func (g *Game) cycle() {
+	for i:=0; i < g.speed; i++ {
+		opcode := (uint16(g.cpu.memory[g.cpu.pc])) << 8 | uint16(g.cpu.memory[g.cpu.pc + 1])
+		g.cpu.ExecuteInstruction(uint16(opcode), &g.display)
+	}
+	if !g.paused {
+		g.updateTimers()
+	}
+}
+
+func (g *Game) updateTimers() {
+	// if g.cpu.delayTimer > 0 {
+	// 	g.cpu.delayTimer--
+	// }
+	// if g.cpu.soundTimer > 0 {
+	// 	g.cpu.soundTimer--
+	// }
 }

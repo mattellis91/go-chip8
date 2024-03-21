@@ -55,7 +55,7 @@ func (c *CPU) ExecuteInstruction(instruction uint16, display *Display) {
 			}
 		case 0x1000:
 			//JP addr - Jump to location nnn
-			c.pc = instruction & 0x0FFF
+			c.pc = nnn
 		case 0x2000:
 			//CALL addr - Call subroutine at nnn
 			c.sp++
@@ -63,7 +63,7 @@ func (c *CPU) ExecuteInstruction(instruction uint16, display *Display) {
 				panic("STACK OVERFLOW")
 			}
 			c.stack[c.sp] = c.pc
-			c.pc = instruction & 0x0FFF
+			c.pc = nnn
 		case 0x3000:
 			//SE Vx, byte - Skip next instruction if Vx = nn
 			if c.vx[x] == uint8(nn) {
@@ -154,6 +154,7 @@ func (c *CPU) ExecuteInstruction(instruction uint16, display *Display) {
 			c.iv = nnn
 		case 0xB000:
 			//JP V0, addr - Jump to location nnn + V0
+			c.pc = nnn + uint16(c.vx[0])
 		case 0xC000:
 			//RND Vx, byte - Set Vx = random byte AND nn
 			rand := uint8(rand.Intn(256))
@@ -175,7 +176,6 @@ func (c *CPU) ExecuteInstruction(instruction uint16, display *Display) {
 				}
 			}
 		case 0xE000:
-			//TODO: Check the rest of the Exxx instructions
 			switch instruction & 0xFF {
 				case 0x9E:
 					//SKP Vx - Skip next instruction if key with the value of Vx is pressed
@@ -195,14 +195,21 @@ func (c *CPU) ExecuteInstruction(instruction uint16, display *Display) {
 					//LD ST, Vx - Set sound timer = Vx
 				case 0x1E:
 					//ADD I, Vx - Set I = I + Vx
+					c.iv += uint16(c.vx[x])
 				case 0x29:
 					//LD F, Vx - Set I = location of sprite for digit Vx
 				case 0x33:
 					//LD B, Vx - Store BCD representation of Vx in memory locations I, I+1, and I+2
 				case 0x55:
 					//LD [I], Vx - Store registers V0 through Vx in memory starting at location I
+					for i := 0; i <= int(x); i++ {
+						c.memory[c.iv + uint16(i)] = c.vx[i]
+					}
 				case 0x65:
 					//LD Vx, [I] - Read registers V0 through Vx from memory starting at location I
+					for i := 0; i <= int(x); i++ {
+						c.vx[i] = c.memory[c.iv + uint16(i)]
+					}
 			}
 		default:
 			panic("INVALID OPCODE")
